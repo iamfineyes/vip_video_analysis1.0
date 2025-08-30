@@ -46,8 +46,7 @@ class VipVideoPlayerFrontend {
             checkUrlBtn: document.getElementById('checkUrlBtn'),
             checkApisBtn: document.getElementById('checkApisBtn'),
             clearBtn: document.getElementById('clearBtn'),
-            clearLogBtn: document.getElementById('clearLogBtn'),
-            statusLog: document.getElementById('statusLog'),
+
             platformInfo: document.getElementById('platformInfo'),
             platformText: document.getElementById('platformText'),
             apiStatus: document.getElementById('apiStatus'),
@@ -61,7 +60,7 @@ class VipVideoPlayerFrontend {
         this.elements.checkUrlBtn.addEventListener('click', () => this.checkUrl());
         this.elements.checkApisBtn.addEventListener('click', () => this.checkApis());
         this.elements.clearBtn.addEventListener('click', () => this.clearInput());
-        this.elements.clearLogBtn.addEventListener('click', () => this.clearLog());
+
 
         // URL输入框事件
         this.elements.videoUrlInput.addEventListener('blur', () => {
@@ -88,14 +87,7 @@ class VipVideoPlayerFrontend {
         return now.toLocaleTimeString('zh-CN', { hour12: false });
     }
 
-    // 添加日志
-    addLog(message, type = 'info') {
-        const logEntry = document.createElement('div');
-        logEntry.className = `log-entry ${type}`;
-        logEntry.innerHTML = `[${this.formatTime()}] ${message}`;
-        this.elements.statusLog.appendChild(logEntry);
-        this.elements.statusLog.scrollTop = this.elements.statusLog.scrollHeight;
-    }
+
 
     // 设置按钮加载状态
     setButtonLoading(button, loading) {
@@ -116,7 +108,6 @@ class VipVideoPlayerFrontend {
         else if (button === this.elements.checkUrlBtn) icon.className = 'fas fa-search';
         else if (button === this.elements.checkApisBtn) icon.className = 'fas fa-network-wired';
         else if (button === this.elements.clearBtn) icon.className = 'fas fa-eraser';
-        else if (button === this.elements.clearLogBtn) icon.className = 'fas fa-trash';
     }
 
     // 显示提示信息
@@ -243,15 +234,11 @@ class VipVideoPlayerFrontend {
     // 初始化应用
     async init() {
         try {
-            this.addLog('正在初始化VIP视频播放器（纯前端版）...', 'info');
-            this.addLog('正在加载解析接口列表...', 'info');
-            
-            // 检测设备类型并显示相应提示
+            // 检测设备类型
             if (this.isMobileDevice()) {
-                this.addLog('📱 检测到移动设备，已启用防广告模式', 'info');
-                this.addLog('💡 移动端提示：建议使用带广告拦截功能的浏览器', 'info');
+                // 移动设备防广告模式
             } else {
-                this.addLog('🖥️ 检测到桌面设备，已启用新窗口模式', 'info');
+                // 桌面设备新窗口模式
             }
             
             // 初始化接口选择器
@@ -263,17 +250,12 @@ class VipVideoPlayerFrontend {
                 this.elements.apiSelect.appendChild(option);
             });
             
-            this.addLog(`✓ 已加载 ${this.parseApis.length} 个解析接口`, 'success');
-            this.addLog('系统初始化完成，可以开始使用！', 'success');
-            this.addLog('💡 提示：纯前端版本无需服务器，可直接访问！', 'info');
-            
             // 自动检测接口状态
             setTimeout(() => {
                 this.checkApis();
             }, 1000);
             
         } catch (error) {
-            this.addLog(`❌ 初始化失败: ${error.message}`, 'error');
             this.showAlert('系统初始化失败，请刷新页面重试', 'danger');
         }
     }
@@ -292,7 +274,6 @@ class VipVideoPlayerFrontend {
         }
 
         this.setButtonLoading(this.elements.checkUrlBtn, true);
-        this.addLog(`正在检测链接: ${url}`, 'info');
 
         try {
             // 纯前端实现URL检测
@@ -300,23 +281,17 @@ class VipVideoPlayerFrontend {
             const isVip = this.isVipContent(url);
 
             if (platform) {
-                this.addLog(`✓ 检测到支持的平台: ${platform}`, 'success');
                 this.elements.platformText.textContent = `检测到平台: ${platform}${isVip ? ' (VIP内容)' : ''}`;
                 this.elements.platformInfo.style.display = 'flex';
                 
                 if (isVip) {
-                    this.addLog('✓ 检测到VIP内容，可以使用本工具免费观看', 'success');
                     this.showAlert('检测到VIP内容，可以免费观看！', 'success');
-                } else {
-                    this.addLog('ℹ 该内容可能不需要VIP，但仍可使用本工具播放', 'info');
                 }
             } else {
-                this.addLog('⚠ 未检测到支持的平台，但仍可尝试播放', 'warning');
                 this.elements.platformInfo.style.display = 'none';
                 this.showAlert('未检测到支持的平台，但仍可尝试解析', 'warning');
             }
         } catch (error) {
-            this.addLog(`❌ 检测链接失败: ${error.message}`, 'error');
             this.elements.platformInfo.style.display = 'none';
             this.showAlert('链接检测失败', 'danger');
         } finally {
@@ -327,7 +302,6 @@ class VipVideoPlayerFrontend {
     // 检测接口状态
     async checkApis() {
         this.setButtonLoading(this.elements.checkApisBtn, true);
-        this.addLog('开始检测解析接口状态...', 'info');
         this.elements.apiStatus.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="loading"></div> 正在检测接口状态...</div>';
 
         try {
@@ -353,20 +327,12 @@ class VipVideoPlayerFrontend {
                 this.elements.apiStatus.appendChild(apiItem);
             });
             
-            this.addLog(`接口检测完成: ${data.available_count}/${data.total_count} 个接口可用`, 
-                       data.available_count > 0 ? 'success' : 'error');
-            
             if (data.available_count === 0) {
-                this.addLog('⚠ 警告: 当前没有可用的解析接口，请检查网络连接', 'warning');
                 this.showAlert('当前没有可用的解析接口，请检查网络连接', 'danger');
             } else if (data.available_count < data.total_count / 2) {
-                this.addLog('⚠ 注意: 部分接口不可用，可能影响解析成功率', 'warning');
                 this.showAlert('部分接口不可用，建议选择可用接口', 'warning');
-            } else {
-                this.addLog('✓ 接口状态良好，可以正常使用', 'success');
             }
         } catch (error) {
-            this.addLog(`❌ 接口状态检测失败: ${error.message}`, 'error');
             this.elements.apiStatus.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545;"><i class="fas fa-exclamation-triangle"></i> 检测失败，请稍后重试</div>';
             this.showAlert('接口状态检测失败，请稍后重试', 'danger');
         } finally {
@@ -599,7 +565,6 @@ class VipVideoPlayerFrontend {
         
         if (isMobile) {
             // 移动端：使用内置播放器，完全避免广告
-            this.addLog('📱 检测到移动设备，启用防广告播放器', 'info');
             
             // 设置弹窗拦截器
             this.setupPopupBlocker();
@@ -609,18 +574,15 @@ class VipVideoPlayerFrontend {
             
             if (choice) {
                 // 使用内置播放器
-                this.addLog('🛡️ 启动防广告播放器...', 'success');
                 this.createMobilePlayer(url, apiUsed);
                 this.showAlert('防广告播放器已启动，享受无广告体验！', 'success');
             } else {
                 // 复制链接
                 this.copyToClipboard(url);
                 this.showAlert('解析链接已复制到剪贴板', 'info');
-                this.addLog('📋 解析链接已复制到剪贴板', 'info');
             }
         } else {
             // 桌面端：尝试新窗口打开
-            this.addLog('🖥️ 检测到桌面设备，使用新窗口模式', 'info');
             
             try {
                 // 设置窗口特性，减少广告弹窗
@@ -638,14 +600,12 @@ class VipVideoPlayerFrontend {
                     }, 100);
                     
                     this.showAlert(`解析成功！使用${apiUsed}，已在新窗口打开视频`, 'success');
-                    this.addLog('✓ 视频播放页面已在新窗口打开', 'success');
                 } else {
                     throw new Error('弹窗被阻止');
                 }
             } catch (error) {
                 // 新窗口打开失败，提供备选方案
                 this.showAlert('浏览器阻止了弹窗，请手动复制链接或允许弹窗', 'warning');
-                this.addLog('⚠ 浏览器阻止了弹窗，已复制解析链接', 'warning');
                 this.copyToClipboard(url);
             }
         }
@@ -674,7 +634,6 @@ class VipVideoPlayerFrontend {
         const apiIndex = parseInt(this.elements.apiSelect.value);
 
         this.setButtonLoading(this.elements.parseBtn, true);
-        this.addLog(`开始解析视频: ${videoUrl}`, 'info');
         
         try {
             let parseUrl;
@@ -682,30 +641,22 @@ class VipVideoPlayerFrontend {
             
             if (apiIndex === -1) {
                 // 自动选择第一个接口
-                this.addLog('正在自动选择解析接口...', 'info');
                 parseUrl = this.generateParseUrl(this.parseApis[0], videoUrl);
                 apiUsed = '接口1';
-                this.addLog(`自动选择接口1生成解析链接`, 'info');
             } else {
                 // 使用指定接口
                 if (apiIndex >= 0 && apiIndex < this.parseApis.length) {
                     parseUrl = this.generateParseUrl(this.parseApis[apiIndex], videoUrl);
                     apiUsed = `接口${apiIndex + 1}`;
-                    this.addLog(`使用指定接口${apiIndex + 1}`, 'info');
                 } else {
                     throw new Error('选择的接口不存在');
                 }
             }
             
-            this.addLog(`✓ 解析成功！使用${apiUsed}`, 'success');
-            this.addLog(`生成解析链接: ${parseUrl}`, 'info');
-            this.addLog('正在打开视频播放页面...', 'info');
-            
             // 使用安全打开链接方法
             this.safeOpenLink(parseUrl, apiUsed);
             
         } catch (error) {
-            this.addLog(`❌ 解析过程中出现错误: ${error.message}`, 'error');
             this.showAlert('解析失败，请尝试其他接口或稍后重试', 'danger');
         } finally {
             this.setButtonLoading(this.elements.parseBtn, false);
@@ -716,10 +667,9 @@ class VipVideoPlayerFrontend {
     async copyToClipboard(text) {
         try {
             await navigator.clipboard.writeText(text);
-            this.addLog('✓ 解析链接已复制到剪贴板', 'success');
             this.showAlert('解析链接已复制到剪贴板', 'info');
         } catch (error) {
-            this.addLog('⚠ 无法复制到剪贴板，请手动复制', 'warning');
+            this.showAlert('无法复制到剪贴板，请手动复制', 'warning');
         }
     }
 
@@ -729,16 +679,10 @@ class VipVideoPlayerFrontend {
         this.elements.apiSelect.value = '-1';
         this.elements.platformInfo.style.display = 'none';
         this.elements.videoUrlInput.style.borderColor = '#e9ecef';
-        this.addLog('已清空输入内容', 'info');
         this.elements.videoUrlInput.focus();
     }
 
-    // 清空日志
-    clearLog() {
-        this.elements.statusLog.innerHTML = '';
-        this.addLog('日志已清空', 'info');
-        this.addLog('欢迎使用VIP视频播放器 纯前端版！', 'info');
-    }
+
 
     // 获取平台图标
     getPlatformIcon(platform) {
