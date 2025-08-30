@@ -3,22 +3,22 @@
 
 class VipVideoPlayerFrontend {
     constructor() {
-        // VIP解析接口列表（2024年最新更新）
+        // VIP解析接口列表（与后端版本保持一致）
         this.parseApis = [
-            "https://jx.playerjy.com/?url=",  // JY解析 - 稳定推荐
-            "https://im1907.top/?jx=",  // 纯净1 - 新增
-            "https://www.ckplayer.vip/jiexi/?url=",  // CK解析 - 稳定
-            "https://jx.m3u8.tv/jiexi/?url=",  // M3U8解析
-            "https://jx.yparse.com/index.php?url=",  // 云析解析
-            "https://jx.xmflv.com/?url=",  // 虾米解析
-            "https://yparse.ik9.cc/index.php?url=",  // IK9解析 - 新增
-            "https://jiexi.site/?url=",  // JX解析 - 新增
-            "https://www.playm3u8.cn/jiexi.php?url=",  // PM解析 - 新增
-            "https://www.pangujiexi.com/jiexi/?url=",  // 盘古2 - 新增
-            "https://www.pouyun.com/?url=",  // 剖云解析 - 新增
-            "https://jx.nnxv.cn/tv.php?url=",  // 七哥解析 - 新增
-            "https://json.ovvo.pro/jx.php?url=",  // 神哥解析 - 新增
-            "https://www.yemu.xyz/?url="  // 夜幕解析 - 新增
+            "https://jx.playerjy.com/?url=",  // 测试可用
+            "https://jx.777jiexi.com/player/?url=",
+            "https://jx.xyflv.com/?url=",
+            "https://jx.m3u8.tv/jiexi/?url=",
+            "https://jx.yparse.com/index.php?url=",
+            "https://jx.aidouer.net/?url=",
+            "https://jx.618g.com/?url=",
+            "https://www.8090g.cn/?url=",
+            "https://jx.mmkv.cn/tv.php?url=",
+            "https://www.ckplayer.vip/jiexi/?url=",
+            "https://jx.xmflv.com/?url=",
+            "https://jx.we-vip.com/?url=",
+            "https://jx.bozrc.com:4433/player/?url=",
+            "https://jx.blbo.cc:4433/?url="
         ];
         
         // 支持的平台
@@ -46,7 +46,6 @@ class VipVideoPlayerFrontend {
             checkUrlBtn: document.getElementById('checkUrlBtn'),
             checkApisBtn: document.getElementById('checkApisBtn'),
             clearBtn: document.getElementById('clearBtn'),
-            quickTestBtn: document.getElementById('quickTestBtn'),
 
             platformInfo: document.getElementById('platformInfo'),
             platformText: document.getElementById('platformText'),
@@ -61,7 +60,7 @@ class VipVideoPlayerFrontend {
         this.elements.checkUrlBtn.addEventListener('click', () => this.checkUrl());
         this.elements.checkApisBtn.addEventListener('click', () => this.checkApis());
         this.elements.clearBtn.addEventListener('click', () => this.clearInput());
-        this.elements.quickTestBtn.addEventListener('click', () => this.quickTest());
+
 
         // URL输入框事件
         this.elements.videoUrlInput.addEventListener('blur', () => {
@@ -215,14 +214,7 @@ class VipVideoPlayerFrontend {
 
     // 生成解析链接
     generateParseUrl(api, videoUrl) {
-        // 处理特殊格式的接口
-        if (api.includes('?jx=')) {
-            // 对于im1907.top这类使用?jx=参数的接口
-            return api + encodeURIComponent(videoUrl);
-        } else {
-            // 标准格式的接口
-            return api + encodeURIComponent(videoUrl);
-        }
+        return api + encodeURIComponent(videoUrl);
     }
 
     // 验证URL格式
@@ -593,10 +585,10 @@ class VipVideoPlayerFrontend {
                     src="${url}" 
                     frameborder="0" 
                     allowfullscreen
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation allow-presentation allow-downloads allow-modals allow-orientation-lock allow-pointer-lock allow-popups-to-escape-sandbox"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation allow-presentation allow-downloads"
                     referrerpolicy="no-referrer-when-downgrade"
                     loading="eager"
-                    allow="autoplay *; fullscreen *; picture-in-picture *; encrypted-media *; accelerometer *; gyroscope *; camera *; microphone *; geolocation *"></iframe>
+                    allow="autoplay *; fullscreen *; picture-in-picture *; encrypted-media *; accelerometer *; gyroscope *"></iframe>
             </div>
             <div class="mobile-player-footer">
                 <button id="refresh-player" class="refresh-btn">🔄 刷新</button>
@@ -617,7 +609,6 @@ class VipVideoPlayerFrontend {
                 z-index: 10000;
                 display: flex;
                 flex-direction: column;
-                overflow: hidden;
             }
             .mobile-player-header {
                 background: #333;
@@ -627,7 +618,6 @@ class VipVideoPlayerFrontend {
                 justify-content: space-between;
                 align-items: center;
                 font-size: 14px;
-                flex-shrink: 0;
             }
             .close-btn {
                 background: #ff4444;
@@ -636,25 +626,15 @@ class VipVideoPlayerFrontend {
                 padding: 8px 12px;
                 border-radius: 4px;
                 cursor: pointer;
-                font-size: 14px;
-                min-width: 80px;
-            }
-            .api-info {
-                font-size: 12px;
-                color: #ccc;
             }
             .mobile-player-content {
                 flex: 1;
                 position: relative;
-                overflow: hidden;
-                background: #000;
             }
             #mobile-player-frame {
                 width: 100%;
                 height: 100%;
                 border: none;
-                display: block;
-                background: #000;
             }
             .mobile-player-footer {
                 background: #333;
@@ -684,50 +664,30 @@ class VipVideoPlayerFrontend {
         // 移动端专用广告拦截优化
         this.optimizeMobileAdBlocking(playerContainer, iframe);
         
-        // 阻止页面滚动
-        document.body.style.overflow = 'hidden';
-        
         // 绑定事件
-        const closePlayer = () => {
-            document.body.style.overflow = '';
-            if (document.body.contains(playerContainer)) {
-                document.body.removeChild(playerContainer);
-            }
-            if (document.head.contains(style)) {
-                document.head.removeChild(style);
-            }
+        document.getElementById('close-player').onclick = () => {
+            document.body.removeChild(playerContainer);
+            document.head.removeChild(style);
         };
         
-        document.getElementById('close-player').onclick = closePlayer;
-        
         document.getElementById('refresh-player').onclick = () => {
-            if (iframe) {
-                iframe.src = url;
-                this.showAlert('播放器已刷新', 'info');
-            }
+            document.getElementById('mobile-player-frame').src = url;
         };
         
         document.getElementById('copy-link').onclick = () => {
             this.copyToClipboard(url);
+            this.showAlert('链接已复制到剪贴板', 'success');
         };
         
-        // 添加加载状态提示
-        iframe.onload = () => {
-            console.log('移动端播放器加载完成');
-        };
+        // 阻止页面滚动
+        document.body.style.overflow = 'hidden';
         
-        iframe.onerror = () => {
-            this.showAlert('播放器加载失败，请尝试刷新或使用其他接口', 'danger');
+        // 关闭时恢复滚动
+        document.getElementById('close-player').onclick = () => {
+            document.body.style.overflow = '';
+            document.body.removeChild(playerContainer);
+            document.head.removeChild(style);
         };
-        
-        // 添加键盘事件支持（ESC键关闭）
-        const handleKeyPress = (e) => {
-            if (e.key === 'Escape') {
-                closePlayer();
-                document.removeEventListener('keydown', handleKeyPress);
-            }
-        };
-        document.addEventListener('keydown', handleKeyPress);
     }
 
     // 弹窗拦截器
@@ -1446,35 +1406,13 @@ class VipVideoPlayerFrontend {
             const choice = confirm(`解析成功！使用${apiUsed}\n\n点击"确定"使用内置防广告播放器\n点击"取消"复制链接手动打开`);
             
             if (choice) {
-                try {
-                    // 使用内置播放器
-                    this.createMobilePlayer(url, apiUsed);
-                    this.showAlert('防广告播放器已启动，享受无广告体验！', 'success');
-                    
-                    // 添加播放器启动后的检查
-                    setTimeout(() => {
-                        const iframe = document.getElementById('mobile-player-frame');
-                        if (iframe) {
-                            console.log('移动端播放器已创建，URL:', url);
-                            // 检查iframe是否正确加载
-                            iframe.addEventListener('load', () => {
-                                console.log('iframe加载完成');
-                            });
-                            iframe.addEventListener('error', () => {
-                                console.error('iframe加载失败');
-                                this.showAlert('视频加载失败，请尝试其他接口', 'danger');
-                            });
-                        }
-                    }, 100);
-                    
-                } catch (error) {
-                    console.error('创建移动播放器失败:', error);
-                    this.showAlert('播放器启动失败，正在复制链接...', 'warning');
-                    this.copyToClipboard(url);
-                }
+                // 使用内置播放器
+                this.createMobilePlayer(url, apiUsed);
+                this.showAlert('防广告播放器已启动，享受无广告体验！', 'success');
             } else {
                 // 复制链接
                 this.copyToClipboard(url);
+                this.showAlert('解析链接已复制到剪贴板', 'info');
             }
         } else {
             // 桌面端：尝试新窗口打开
@@ -1548,18 +1486,10 @@ class VipVideoPlayerFrontend {
                 }
             }
             
-            console.log('开始解析视频:', {
-                originalUrl: videoUrl,
-                parseUrl: parseUrl,
-                apiUsed: apiUsed,
-                isMobile: this.isMobileDevice()
-            });
-            
             // 使用安全打开链接方法
             this.safeOpenLink(parseUrl, apiUsed);
             
         } catch (error) {
-            console.error('解析视频失败:', error);
             this.showAlert('解析失败，请尝试其他接口或稍后重试', 'danger');
         } finally {
             this.setButtonLoading(this.elements.parseBtn, false);
@@ -1585,18 +1515,7 @@ class VipVideoPlayerFrontend {
         this.elements.videoUrlInput.focus();
     }
 
-    // 快速测试功能
-    quickTest() {
-        // 使用一个测试视频链接
-        const testUrl = 'https://v.qq.com/x/cover/mzc00200mp8vo9b.html';
-        this.elements.videoUrlInput.value = testUrl;
-        this.showAlert('已填入测试链接，点击"开始解析"测试功能', 'info');
-        
-        // 自动检测链接
-        setTimeout(() => {
-            this.checkUrl();
-        }, 500);
-    }
+
 
     // 获取平台图标
     getPlatformIcon(platform) {
