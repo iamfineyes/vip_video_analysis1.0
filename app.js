@@ -381,22 +381,239 @@ class VipVideoPlayerFrontend {
     }
 
     // 安全打开链接（防止广告弹窗）
+    // 广告域名黑名单
+    getAdBlockList() {
+        return [
+            'googleads.g.doubleclick.net',
+            'googlesyndication.com',
+            'googleadservices.com',
+            'google-analytics.com',
+            'googletagmanager.com',
+            'facebook.com/tr',
+            'connect.facebook.net',
+            'amazon-adsystem.com',
+            'adsystem.amazon.com',
+            'doubleclick.net',
+            'adsense.google.com',
+            'ads.yahoo.com',
+            'advertising.com',
+            'adsystem.com',
+            'popads.net',
+            'popcash.net',
+            'propellerads.com',
+            'revcontent.com',
+            'outbrain.com',
+            'taboola.com'
+        ];
+    }
+
+    // 创建防广告iframe
+    createAdBlockIframe(url) {
+        return new Promise((resolve, reject) => {
+            // 创建一个隐藏的iframe来预加载和检测
+            const testFrame = document.createElement('iframe');
+            testFrame.style.display = 'none';
+            testFrame.style.position = 'absolute';
+            testFrame.style.left = '-9999px';
+            testFrame.src = url;
+            
+            let resolved = false;
+            
+            // 设置超时
+            const timeout = setTimeout(() => {
+                if (!resolved) {
+                    resolved = true;
+                    document.body.removeChild(testFrame);
+                    reject(new Error('加载超时'));
+                }
+            }, 5000);
+            
+            testFrame.onload = () => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timeout);
+                    document.body.removeChild(testFrame);
+                    resolve(true);
+                }
+            };
+            
+            testFrame.onerror = () => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timeout);
+                    document.body.removeChild(testFrame);
+                    reject(new Error('加载失败'));
+                }
+            };
+            
+            document.body.appendChild(testFrame);
+        });
+    }
+
+    // 移动端专用播放器
+    createMobilePlayer(url, apiUsed) {
+        // 创建全屏播放容器
+        const playerContainer = document.createElement('div');
+        playerContainer.id = 'mobile-player-container';
+        playerContainer.innerHTML = `
+            <div class="mobile-player-header">
+                <button id="close-player" class="close-btn">✕ 关闭播放器</button>
+                <span class="api-info">使用: ${apiUsed}</span>
+            </div>
+            <div class="mobile-player-content">
+                <iframe id="mobile-player-frame" src="${url}" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div class="mobile-player-footer">
+                <button id="refresh-player" class="refresh-btn">🔄 刷新</button>
+                <button id="copy-link" class="copy-btn">📋 复制链接</button>
+            </div>
+        `;
+        
+        // 添加样式
+        const style = document.createElement('style');
+        style.textContent = `
+            #mobile-player-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #000;
+                z-index: 10000;
+                display: flex;
+                flex-direction: column;
+            }
+            .mobile-player-header {
+                background: #333;
+                color: white;
+                padding: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 14px;
+            }
+            .close-btn {
+                background: #ff4444;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .mobile-player-content {
+                flex: 1;
+                position: relative;
+            }
+            #mobile-player-frame {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+            .mobile-player-footer {
+                background: #333;
+                padding: 10px;
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+            }
+            .refresh-btn, .copy-btn {
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+        `;
+        
+        document.head.appendChild(style);
+        document.body.appendChild(playerContainer);
+        
+        // 绑定事件
+        document.getElementById('close-player').onclick = () => {
+            document.body.removeChild(playerContainer);
+            document.head.removeChild(style);
+        };
+        
+        document.getElementById('refresh-player').onclick = () => {
+            document.getElementById('mobile-player-frame').src = url;
+        };
+        
+        document.getElementById('copy-link').onclick = () => {
+            this.copyToClipboard(url);
+            this.showAlert('链接已复制到剪贴板', 'success');
+        };
+        
+        // 阻止页面滚动
+        document.body.style.overflow = 'hidden';
+        
+        // 关闭时恢复滚动
+        document.getElementById('close-player').onclick = () => {
+            document.body.style.overflow = '';
+            document.body.removeChild(playerContainer);
+            document.head.removeChild(style);
+        };
+    }
+
+    // 弹窗拦截器
+    setupPopupBlocker() {
+        // 拦截所有弹窗
+        const originalOpen = window.open;
+        window.open = function(url, name, features) {
+            // 检查是否为广告域名
+            if (url) {
+                const adBlockList = this.getAdBlockList ? this.getAdBlockList() : [];
+                for (const adDomain of adBlockList) {
+                    if (url.includes(adDomain)) {
+                        console.log('已拦截广告弹窗:', url);
+                        return null;
+                    }
+                }
+            }
+            return originalOpen.call(window, url, name, features);
+        }.bind(this);
+        
+        // 拦截广告点击事件
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.tagName === 'A' || target.onclick) {
+                const href = target.href || target.getAttribute('onclick');
+                if (href) {
+                    const adBlockList = this.getAdBlockList();
+                    for (const adDomain of adBlockList) {
+                        if (href.includes(adDomain)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('已拦截广告链接:', href);
+                            return false;
+                        }
+                    }
+                }
+            }
+        }, true);
+    }
+
     safeOpenLink(url, apiUsed) {
         const isMobile = this.isMobileDevice();
         
         if (isMobile) {
-            // 移动端：使用location.href直接跳转，避免弹窗广告
-            this.addLog('📱 检测到移动设备，使用安全跳转模式', 'info');
+            // 移动端：使用内置播放器，完全避免广告
+            this.addLog('📱 检测到移动设备，启用防广告播放器', 'info');
             
-            // 显示确认对话框
-            const userConfirm = confirm(`解析成功！使用${apiUsed}\n\n点击"确定"跳转到播放页面\n点击"取消"复制链接到剪贴板`);
+            // 设置弹窗拦截器
+            this.setupPopupBlocker();
             
-            if (userConfirm) {
-                // 用户确认后直接跳转
-                window.location.href = url;
-                this.addLog('✓ 正在跳转到视频播放页面...', 'success');
+            // 显示选择对话框
+            const choice = confirm(`解析成功！使用${apiUsed}\n\n点击"确定"使用内置防广告播放器\n点击"取消"复制链接手动打开`);
+            
+            if (choice) {
+                // 使用内置播放器
+                this.addLog('🛡️ 启动防广告播放器...', 'success');
+                this.createMobilePlayer(url, apiUsed);
+                this.showAlert('防广告播放器已启动，享受无广告体验！', 'success');
             } else {
-                // 用户取消，复制链接
+                // 复制链接
                 this.copyToClipboard(url);
                 this.showAlert('解析链接已复制到剪贴板', 'info');
                 this.addLog('📋 解析链接已复制到剪贴板', 'info');
