@@ -3,22 +3,22 @@
 
 class VipVideoPlayerFrontend {
     constructor() {
-        // VIP解析接口列表（与后端版本保持一致）
+        // VIP解析接口列表（2024年最新更新）
         this.parseApis = [
-            "https://jx.playerjy.com/?url=",  // 测试可用
-            "https://jx.777jiexi.com/player/?url=",
-            "https://jx.xyflv.com/?url=",
-            "https://jx.m3u8.tv/jiexi/?url=",
-            "https://jx.yparse.com/index.php?url=",
-            "https://jx.aidouer.net/?url=",
-            "https://jx.618g.com/?url=",
-            "https://www.8090g.cn/?url=",
-            "https://jx.mmkv.cn/tv.php?url=",
-            "https://www.ckplayer.vip/jiexi/?url=",
-            "https://jx.xmflv.com/?url=",
-            "https://jx.we-vip.com/?url=",
-            "https://jx.bozrc.com:4433/player/?url=",
-            "https://jx.blbo.cc:4433/?url="
+            "https://jx.playerjy.com/?url=",  // JY解析 - 稳定推荐
+            "https://im1907.top/?jx=",  // 纯净1 - 新增
+            "https://www.ckplayer.vip/jiexi/?url=",  // CK解析 - 稳定
+            "https://jx.m3u8.tv/jiexi/?url=",  // M3U8解析
+            "https://jx.yparse.com/index.php?url=",  // 云析解析
+            "https://jx.xmflv.com/?url=",  // 虾米解析
+            "https://yparse.ik9.cc/index.php?url=",  // IK9解析 - 新增
+            "https://jiexi.site/?url=",  // JX解析 - 新增
+            "https://www.playm3u8.cn/jiexi.php?url=",  // PM解析 - 新增
+            "https://www.pangujiexi.com/jiexi/?url=",  // 盘古2 - 新增
+            "https://www.pouyun.com/?url=",  // 剖云解析 - 新增
+            "https://jx.nnxv.cn/tv.php?url=",  // 七哥解析 - 新增
+            "https://json.ovvo.pro/jx.php?url=",  // 神哥解析 - 新增
+            "https://www.yemu.xyz/?url="  // 夜幕解析 - 新增
         ];
         
         // 支持的平台
@@ -46,6 +46,7 @@ class VipVideoPlayerFrontend {
             checkUrlBtn: document.getElementById('checkUrlBtn'),
             checkApisBtn: document.getElementById('checkApisBtn'),
             clearBtn: document.getElementById('clearBtn'),
+            quickTestBtn: document.getElementById('quickTestBtn'),
 
             platformInfo: document.getElementById('platformInfo'),
             platformText: document.getElementById('platformText'),
@@ -60,7 +61,7 @@ class VipVideoPlayerFrontend {
         this.elements.checkUrlBtn.addEventListener('click', () => this.checkUrl());
         this.elements.checkApisBtn.addEventListener('click', () => this.checkApis());
         this.elements.clearBtn.addEventListener('click', () => this.clearInput());
-
+        this.elements.quickTestBtn.addEventListener('click', () => this.quickTest());
 
         // URL输入框事件
         this.elements.videoUrlInput.addEventListener('blur', () => {
@@ -214,7 +215,14 @@ class VipVideoPlayerFrontend {
 
     // 生成解析链接
     generateParseUrl(api, videoUrl) {
-        return api + encodeURIComponent(videoUrl);
+        // 处理特殊格式的接口
+        if (api.includes('?jx=')) {
+            // 对于im1907.top这类使用?jx=参数的接口
+            return api + encodeURIComponent(videoUrl);
+        } else {
+            // 标准格式的接口
+            return api + encodeURIComponent(videoUrl);
+        }
     }
 
     // 验证URL格式
@@ -1577,7 +1585,18 @@ class VipVideoPlayerFrontend {
         this.elements.videoUrlInput.focus();
     }
 
-
+    // 快速测试功能
+    quickTest() {
+        // 使用一个测试视频链接
+        const testUrl = 'https://v.qq.com/x/cover/mzc00200mp8vo9b.html';
+        this.elements.videoUrlInput.value = testUrl;
+        this.showAlert('已填入测试链接，点击"开始解析"测试功能', 'info');
+        
+        // 自动检测链接
+        setTimeout(() => {
+            this.checkUrl();
+        }, 500);
+    }
 
     // 获取平台图标
     getPlatformIcon(platform) {
