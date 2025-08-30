@@ -246,11 +246,20 @@ class VipVideoPlayerFrontend {
             this.addLog('正在初始化VIP视频播放器（纯前端版）...', 'info');
             this.addLog('正在加载解析接口列表...', 'info');
             
-            // 填充接口选择下拉框
+            // 检测设备类型并显示相应提示
+            if (this.isMobileDevice()) {
+                this.addLog('📱 检测到移动设备，已启用防广告模式', 'info');
+                this.addLog('💡 移动端提示：建议使用带广告拦截功能的浏览器', 'info');
+            } else {
+                this.addLog('🖥️ 检测到桌面设备，已启用新窗口模式', 'info');
+            }
+            
+            // 初始化接口选择器
+            this.elements.apiSelect.innerHTML = '<option value="-1">🔄 自动选择最佳接口</option>';
             this.parseApis.forEach((api, index) => {
                 const option = document.createElement('option');
                 option.value = index;
-                option.textContent = `接口${index + 1}`;
+                option.textContent = `接口${index + 1}: ${new URL(api).hostname}`;
                 this.elements.apiSelect.appendChild(option);
             });
             
@@ -366,6 +375,65 @@ class VipVideoPlayerFrontend {
     }
 
     // 解析视频
+    // 检测是否为移动设备
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // 安全打开链接（防止广告弹窗）
+    safeOpenLink(url, apiUsed) {
+        const isMobile = this.isMobileDevice();
+        
+        if (isMobile) {
+            // 移动端：使用location.href直接跳转，避免弹窗广告
+            this.addLog('📱 检测到移动设备，使用安全跳转模式', 'info');
+            
+            // 显示确认对话框
+            const userConfirm = confirm(`解析成功！使用${apiUsed}\n\n点击"确定"跳转到播放页面\n点击"取消"复制链接到剪贴板`);
+            
+            if (userConfirm) {
+                // 用户确认后直接跳转
+                window.location.href = url;
+                this.addLog('✓ 正在跳转到视频播放页面...', 'success');
+            } else {
+                // 用户取消，复制链接
+                this.copyToClipboard(url);
+                this.showAlert('解析链接已复制到剪贴板', 'info');
+                this.addLog('📋 解析链接已复制到剪贴板', 'info');
+            }
+        } else {
+            // 桌面端：尝试新窗口打开
+            this.addLog('🖥️ 检测到桌面设备，使用新窗口模式', 'info');
+            
+            try {
+                // 设置窗口特性，减少广告弹窗
+                const windowFeatures = 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no';
+                const newWindow = window.open(url, '_blank', windowFeatures);
+                
+                if (newWindow) {
+                    // 防止广告劫持焦点
+                    setTimeout(() => {
+                        try {
+                            newWindow.focus();
+                        } catch (e) {
+                            // 忽略跨域错误
+                        }
+                    }, 100);
+                    
+                    this.showAlert(`解析成功！使用${apiUsed}，已在新窗口打开视频`, 'success');
+                    this.addLog('✓ 视频播放页面已在新窗口打开', 'success');
+                } else {
+                    throw new Error('弹窗被阻止');
+                }
+            } catch (error) {
+                // 新窗口打开失败，提供备选方案
+                this.showAlert('浏览器阻止了弹窗，请手动复制链接或允许弹窗', 'warning');
+                this.addLog('⚠ 浏览器阻止了弹窗，已复制解析链接', 'warning');
+                this.copyToClipboard(url);
+            }
+        }
+    }
+
     async parseVideo() {
         const url = this.elements.videoUrlInput.value.trim();
         if (!url) {
@@ -416,19 +484,8 @@ class VipVideoPlayerFrontend {
             this.addLog(`生成解析链接: ${parseUrl}`, 'info');
             this.addLog('正在打开视频播放页面...', 'info');
             
-            // 在新窗口打开解析链接
-            const newWindow = window.open(parseUrl, '_blank');
-            
-            if (newWindow) {
-                this.showAlert(`解析成功！使用${apiUsed}，已在新窗口打开视频`, 'success');
-                this.addLog('✓ 视频播放页面已在新窗口打开', 'success');
-            } else {
-                this.showAlert('解析成功，但无法自动打开新窗口，请手动复制链接', 'warning');
-                this.addLog('⚠ 浏览器阻止了弹窗，请手动打开解析链接', 'warning');
-                
-                // 复制到剪贴板
-                this.copyToClipboard(parseUrl);
-            }
+            // 使用安全打开链接方法
+            this.safeOpenLink(parseUrl, apiUsed);
             
         } catch (error) {
             this.addLog(`❌ 解析过程中出现错误: ${error.message}`, 'error');
