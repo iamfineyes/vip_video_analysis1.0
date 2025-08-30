@@ -552,18 +552,18 @@ class VipVideoPlayerFrontend {
         const cspMeta = document.createElement('meta');
         cspMeta.httpEquiv = 'Content-Security-Policy';
         cspMeta.content = [
-            "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com",
-            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
-            "img-src 'self' data: https:",
-            "media-src 'self' https:",
-            "frame-src 'self' https:",
-            "connect-src 'self' https:",
-            "font-src 'self' https://cdnjs.cloudflare.com",
-            "object-src 'none'",
+            "default-src 'self' https: data:",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+            "style-src 'self' 'unsafe-inline' https:",
+            "img-src 'self' data: https: blob:",
+            "media-src 'self' https: data: blob:",
+            "frame-src 'self' https: data:",
+            "connect-src 'self' https: wss: ws:",
+            "font-src 'self' https: data:",
+            "object-src 'self' https:",
             "base-uri 'self'",
-            "form-action 'self'",
-            "frame-ancestors 'none'"
+            "form-action 'self' https:",
+            "frame-ancestors 'self'"
         ].join('; ');
         
         document.head.appendChild(cspMeta);
@@ -585,11 +585,10 @@ class VipVideoPlayerFrontend {
                     src="${url}" 
                     frameborder="0" 
                     allowfullscreen
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups-to-escape-sandbox"
-                    referrerpolicy="no-referrer"
-                    loading="lazy"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    csp="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; frame-src 'self' https:; connect-src 'self' https:;"></iframe>
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation allow-presentation allow-downloads"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    loading="eager"
+                    allow="autoplay *; fullscreen *; picture-in-picture *; encrypted-media *; accelerometer *; gyroscope *"></iframe>
             </div>
             <div class="mobile-player-footer">
                 <button id="refresh-player" class="refresh-btn">🔄 刷新</button>
@@ -1034,10 +1033,19 @@ class VipVideoPlayerFrontend {
                 const originalFetch = window.fetch;
                 window.fetch = function(url, options) {
                     if (typeof url === 'string') {
-                        for (const domain of adDomains) {
-                            if (url.includes(domain)) {
-                                console.log('🚫 用户脚本拦截请求:', url);
-                                return Promise.reject(new Error('广告请求被拦截'));
+                        // 视频播放白名单
+                        const isVideoRequest = url.includes('.m3u8') || url.includes('.mp4') || 
+                                              url.includes('.flv') || url.includes('.ts') ||
+                                              url.includes('video') || url.includes('stream') ||
+                                              url.includes('play') || url.includes('media') ||
+                                              url.includes('hls') || url.includes('dash');
+                        
+                        if (!isVideoRequest) {
+                            for (const domain of adDomains) {
+                                if (url.includes(domain)) {
+                                    console.log('🚫 用户脚本拦截请求:', url);
+                                    return Promise.reject(new Error('广告请求被拦截'));
+                                }
                             }
                         }
                     }
@@ -1048,12 +1056,21 @@ class VipVideoPlayerFrontend {
                 const originalXHROpen = XMLHttpRequest.prototype.open;
                 XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
                     if (typeof url === 'string') {
-                        for (const domain of adDomains) {
-                            if (url.includes(domain)) {
-                                console.log('🚫 用户脚本拦截XHR:', url);
-                                // 重定向到空响应
-                                url = 'data:text/plain,blocked';
-                                break;
+                        // 视频播放白名单
+                        const isVideoRequest = url.includes('.m3u8') || url.includes('.mp4') || 
+                                              url.includes('.flv') || url.includes('.ts') ||
+                                              url.includes('video') || url.includes('stream') ||
+                                              url.includes('play') || url.includes('media') ||
+                                              url.includes('hls') || url.includes('dash');
+                        
+                        if (!isVideoRequest) {
+                            for (const domain of adDomains) {
+                                if (url.includes(domain)) {
+                                    console.log('🚫 用户脚本拦截XHR:', url);
+                                    // 重定向到空响应
+                                    url = 'data:text/plain,blocked';
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1300,10 +1317,18 @@ class VipVideoPlayerFrontend {
             const originalFetch = window.fetch;
             window.fetch = function(url, options) {
                 if (typeof url === 'string') {
-                    for (const pattern of mobileAdPatterns) {
-                        if (url.includes(pattern)) {
-                            console.log('🚫 移动端拦截广告请求:', url);
-                            return Promise.reject(new Error('移动端广告请求被拦截'));
+                    // 排除视频相关的请求
+                    const isVideoRequest = url.includes('.m3u8') || url.includes('.mp4') || 
+                                          url.includes('.flv') || url.includes('.ts') ||
+                                          url.includes('video') || url.includes('stream') ||
+                                          url.includes('play') || url.includes('media');
+                    
+                    if (!isVideoRequest) {
+                        for (const pattern of mobileAdPatterns) {
+                            if (url.includes(pattern)) {
+                                console.log('🚫 移动端拦截广告请求:', url);
+                                return Promise.reject(new Error('移动端广告请求被拦截'));
+                            }
                         }
                     }
                 }
