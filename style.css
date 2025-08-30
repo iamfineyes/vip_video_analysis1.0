@@ -121,6 +121,34 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* 输入框包装器 */
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-wrapper input#videoUrl {
+    flex: 1 !important;
+    min-width: 500px !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 15px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    transition: var(--transition);
+    background: white;
+    font-family: inherit;
+}
+
+.input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
 .form-control {
     width: 100%;
     padding: 15px;
