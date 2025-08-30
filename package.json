@@ -1,0 +1,30 @@
+{
+  "name": "vip-video-player-frontend",
+  "version": "1.0.0",
+  "description": "VIP视频播放器 - 纯前端版本，支持多平台VIP视频解析",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "build": "exit 0",
+    "start": "python -m http.server 8000"
+  },
+  "keywords": [
+    "video",
+    "player",
+    "vip",
+    "parser",
+    "frontend",
+    "javascript",
+    "html5"
+  ],
+  "author": "VIP Video Player Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/vip-video-player-frontend.git"
+  },
+  "homepage": "https://your-username.github.io/vip-video-player-frontend",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

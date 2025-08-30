@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "name": "vip-video-player",
+  "buildCommand": "echo 'Static site - no build required'",
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "trailingSlash": false
+}

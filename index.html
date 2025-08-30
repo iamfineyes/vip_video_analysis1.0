@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP视频播放器 - 纯前端版</title>
+    <meta name="description" content="免费VIP视频播放器，支持爱奇艺、腾讯视频、优酷等主流平台，无需安装，在线使用">
+    <meta name="keywords" content="VIP视频,免费播放,视频解析,在线播放器">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23007bff'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 引入样式文件 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-play-circle"></i>
+                    <h1>VIP视频播放器</h1>
+                    <span class="version-badge">纯前端版</span>
+                </div>
+                <div class="header-info">
+                    <span class="feature-tag">✨ 无需服务器</span>
+                    <span class="feature-tag">🚀 全球访问</span>
+                    <span class="feature-tag">🔒 隐私安全</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 输入区域 -->
+        <section class="input-section">
+            <div class="form-group">
+                <label for="videoUrl">
+                    <i class="fas fa-link"></i>
+                    视频链接
+                </label>
+                <div class="input-wrapper">
+                    <input 
+                        type="url" 
+                        id="videoUrl" 
+                        placeholder="请输入爱奇艺、腾讯视频、优酷等平台的视频链接..." 
+                        autocomplete="url"
+                        spellcheck="false"
+                    >
+                    <button type="button" id="checkUrlBtn" class="btn btn-secondary" title="检测链接">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="apiSelect">
+                    <i class="fas fa-server"></i>
+                    解析接口
+                </label>
+                <select id="apiSelect" class="form-select">
+                    <option value="-1">自动选择最佳接口</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button type="button" id="parseBtn" class="btn btn-primary">
+                    <i class="fas fa-play"></i>
+                    开始解析
+                </button>
+                <button type="button" id="checkApisBtn" class="btn btn-info">
+                    <i class="fas fa-network-wired"></i>
+                    检测接口
+                </button>
+                <button type="button" id="clearBtn" class="btn btn-secondary">
+                    <i class="fas fa-eraser"></i>
+                    清空
+                </button>
+            </div>
+        </section>
+
+        <!-- 平台信息显示 -->
+        <div id="platformInfo" class="platform-info" style="display: none;">
+            <div class="platform-content">
+                <i class="fas fa-tv platform-icon"></i>
+                <span id="platformText">检测到平台: 未知</span>
+            </div>
+        </div>
+
+        <!-- 状态区域 -->
+        <section class="status-section">
+            <!-- 日志区域 -->
+            <div class="log-container">
+                <div class="log-header">
+                    <h3>
+                        <i class="fas fa-list-alt"></i>
+                        运行日志
+                    </h3>
+                    <button type="button" id="clearLogBtn" class="btn btn-sm btn-outline">
+                        <i class="fas fa-trash"></i>
+                        清空日志
+                    </button>
+                </div>
+                <div id="statusLog" class="status-log">
+                    <!-- 日志内容将通过JavaScript动态添加 -->
+                </div>
+            </div>
+
+            <!-- API状态区域 -->
+            <div class="api-container">
+                <div class="api-header">
+                    <h3>
+                        <i class="fas fa-server"></i>
+                        接口状态
+                    </h3>
+                    <div id="apiSummary" class="api-summary">
+                        等待检测...
+                    </div>
+                </div>
+                <div id="apiStatus" class="api-status">
+                    <div class="api-placeholder">
+                        <i class="fas fa-info-circle"></i>
+                        <p>点击"检测接口"按钮查看所有解析接口的状态</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 使用说明 -->
+        <section class="help-section">
+            <details class="help-details">
+                <summary>
+                    <i class="fas fa-question-circle"></i>
+                    使用说明
+                </summary>
+                <div class="help-content">
+                    <div class="help-grid">
+                        <div class="help-item">
+                            <h4><i class="fas fa-1"></i> 输入链接</h4>
+                            <p>复制视频页面的完整链接到输入框中</p>
+                        </div>
+                        <div class="help-item">
+                            <h4><i class="fas fa-2"></i> 选择接口</h4>
+                            <p>可选择特定接口或使用自动选择</p>
+                        </div>
+                        <div class="help-item">
+                            <h4><i class="fas fa-3"></i> 开始解析</h4>
+                            <p>点击解析按钮，系统将自动打开播放页面</p>
+                        </div>
+                        <div class="help-item">
+                            <h4><i class="fas fa-shield-alt"></i> 安全提示</h4>
+                            <p>本工具完全在浏览器中运行，不会上传任何数据</p>
+                        </div>
+                    </div>
+                    
+                    <div class="supported-platforms">
+                        <h4><i class="fas fa-tv"></i> 支持平台</h4>
+                        <div class="platform-list">
+                            <span class="platform-tag"><i class="fas fa-play-circle"></i> 爱奇艺</span>
+                            <span class="platform-tag"><i class="fas fa-video"></i> 腾讯视频</span>
+                            <span class="platform-tag"><i class="fas fa-film"></i> 优酷</span>
+                            <span class="platform-tag"><i class="fas fa-tv"></i> 芒果TV</span>
+                            <span class="platform-tag"><i class="fab fa-bilibili"></i> 哔哩哔哩</span>
+                            <span class="platform-tag"><i class="fas fa-play"></i> 乐视视频</span>
+                            <span class="platform-tag"><i class="fas fa-play"></i> 搜狐视频</span>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>
+                        <i class="fas fa-code"></i>
+                        VIP视频播放器 纯前端版 - 免费开源
+                    </p>
+                    <p class="footer-note">
+                        <i class="fas fa-info-circle"></i>
+                        本工具仅供学习交流使用，请支持正版内容
+                    </p>
+                </div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link" title="使用帮助">
+                        <i class="fas fa-question-circle"></i>
+                        帮助
+                    </a>
+                    <a href="#" class="footer-link" title="问题反馈">
+                        <i class="fas fa-bug"></i>
+                        反馈
+                    </a>
+                    <a href="#" class="footer-link" title="项目源码">
+                        <i class="fab fa-github"></i>
+                        源码
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 引入JavaScript文件 -->
+    <script src="app.js"></script>
+</body>
+</html>
